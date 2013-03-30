@@ -45,8 +45,6 @@ func CreateFile(name string) (flvFile *File, err error) {
 	return
 }
 
-func ReadAtLeast()
-
 func OpenFile(name string) (flvFile *File, err error) {
 	var file *os.File
 	// Open file

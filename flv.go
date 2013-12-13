@@ -13,6 +13,7 @@ type File struct {
 	readOnly  bool
 	size      int64
 	headerBuf []byte
+	duration  float64
 }
 
 type TagHeader struct {
@@ -32,6 +33,7 @@ func CreateFile(name string) (flvFile *File, err error) {
 		file.Close()
 		return
 	}
+
 	// Sync to disk
 	if err = file.Sync(); err != nil {
 		file.Close()
@@ -43,7 +45,9 @@ func CreateFile(name string) (flvFile *File, err error) {
 		name:      name,
 		readOnly:  false,
 		headerBuf: make([]byte, 11),
+		duration:  0.0,
 	}
+
 	return
 }
 
@@ -107,6 +111,7 @@ func (flvFile *File) WriteVideoTag(data []byte, timestamp uint32) (err error) {
 
 // Write tag
 func (flvFile *File) WriteTag(data []byte, tagType byte, timestamp uint32) (err error) {
+	flvFile.duration = float64(timestamp) / 1000.0
 	binary.BigEndian.PutUint32(flvFile.headerBuf[3:7], timestamp)
 	flvFile.headerBuf[7] = flvFile.headerBuf[3]
 	binary.BigEndian.PutUint32(flvFile.headerBuf[:4], uint32(len(data)))
@@ -158,7 +163,23 @@ func (flvFile *File) WriteTag(data []byte, tagType byte, timestamp uint32) (err 
 	//}
 	return
 }
+
+func (flvFile *File) SetDuration(duration float64) {
+	flvFile.duration = duration
+}
+
 func (flvFile *File) Sync() (err error) {
+	// Update duration on MetaData
+	if _, err = flvFile.file.Seek(DURATION_OFFSET, 0); err != nil {
+		return
+	}
+	if err = binary.Write(flvFile.file, binary.BigEndian, flvFile.duration); err != nil {
+		return
+	}
+	if _, err = flvFile.file.Seek(0, 2); err != nil {
+		return
+	}
+
 	err = flvFile.file.Sync()
 	return
 }

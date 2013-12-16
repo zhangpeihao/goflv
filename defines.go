@@ -16,4 +16,5 @@ const (
 	VIDEO_TAG       = byte(0x09)
 	SCRIPT_DATA_TAG = byte(0x12)
 	DURATION_OFFSET = 53
+	HEADER_LEN      = 13
 )

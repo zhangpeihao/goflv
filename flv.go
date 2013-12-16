@@ -78,7 +78,7 @@ func OpenFile(name string) (flvFile *File, err error) {
 	}
 
 	// Read flv header
-	remain := len(HEADER_BYTES)
+	remain := HEADER_LEN
 	flvHeader := make([]byte, remain)
 
 	if _, err = io.ReadFull(file, flvHeader); err != nil {

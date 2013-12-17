@@ -16,6 +16,8 @@ type File struct {
 	duration           float64
 	lastVideoTimestamp uint32
 	lastAudioTimestamp uint32
+	firstTimestampSet  bool
+	firstTimestamp     uint32
 }
 
 type TagHeader struct {
@@ -123,7 +125,11 @@ func (flvFile *File) WriteVideoTag(data []byte, timestamp uint32) (err error) {
 
 // Write tag
 func (flvFile *File) WriteTag(data []byte, tagType byte, timestamp uint32) (err error) {
-	duration := float64(timestamp) / 1000.0
+	if !flvFile.firstTimestampSet {
+		flvFile.firstTimestampSet = true
+		flvFile.firstTimestamp = timestamp
+	}
+	duration := float64(timestamp-flvFile.firstTimestamp) / 1000.0
 	if flvFile.duration < duration {
 		flvFile.duration = duration
 	}

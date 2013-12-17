@@ -8,12 +8,14 @@ import (
 )
 
 type File struct {
-	file      *os.File
-	name      string
-	readOnly  bool
-	size      int64
-	headerBuf []byte
-	duration  float64
+	file               *os.File
+	name               string
+	readOnly           bool
+	size               int64
+	headerBuf          []byte
+	duration           float64
+	lastVideoTimestamp uint32
+	lastAudioTimestamp uint32
 }
 
 type TagHeader struct {
@@ -101,17 +103,30 @@ func (flvFile *File) Close() {
 
 // Data with audio header
 func (flvFile *File) WriteAudioTag(data []byte, timestamp uint32) (err error) {
+	if timestamp < flvFile.lastAudioTimestamp {
+		timestamp = flvFile.lastAudioTimestamp
+	} else {
+		flvFile.lastAudioTimestamp = timestamp
+	}
 	return flvFile.WriteTag(data, AUDIO_TAG, timestamp)
 }
 
 // Data with video header
 func (flvFile *File) WriteVideoTag(data []byte, timestamp uint32) (err error) {
+	if timestamp < flvFile.lastVideoTimestamp {
+		timestamp = flvFile.lastVideoTimestamp
+	} else {
+		flvFile.lastVideoTimestamp = timestamp
+	}
 	return flvFile.WriteTag(data, VIDEO_TAG, timestamp)
 }
 
 // Write tag
 func (flvFile *File) WriteTag(data []byte, tagType byte, timestamp uint32) (err error) {
-	flvFile.duration = float64(timestamp) / 1000.0
+	duration := float64(timestamp) / 1000.0
+	if flvFile.duration < duration {
+		flvFile.duration = duration
+	}
 	binary.BigEndian.PutUint32(flvFile.headerBuf[3:7], timestamp)
 	flvFile.headerBuf[7] = flvFile.headerBuf[3]
 	binary.BigEndian.PutUint32(flvFile.headerBuf[:4], uint32(len(data)))

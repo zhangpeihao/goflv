@@ -8,16 +8,15 @@ import (
 )
 
 type File struct {
-	file               *os.File
-	name               string
-	readOnly           bool
-	size               int64
-	headerBuf          []byte
-	duration           float64
-	lastVideoTimestamp uint32
-	lastAudioTimestamp uint32
-	firstTimestampSet  bool
-	firstTimestamp     uint32
+	file              *os.File
+	name              string
+	readOnly          bool
+	size              int64
+	headerBuf         []byte
+	duration          float64
+	lastTimestamp     uint32
+	firstTimestampSet bool
+	firstTimestamp    uint32
 }
 
 type TagHeader struct {
@@ -105,31 +104,27 @@ func (flvFile *File) Close() {
 
 // Data with audio header
 func (flvFile *File) WriteAudioTag(data []byte, timestamp uint32) (err error) {
-	if timestamp < flvFile.lastAudioTimestamp {
-		timestamp = flvFile.lastAudioTimestamp
-	} else {
-		flvFile.lastAudioTimestamp = timestamp
-	}
 	return flvFile.WriteTag(data, AUDIO_TAG, timestamp)
 }
 
 // Data with video header
 func (flvFile *File) WriteVideoTag(data []byte, timestamp uint32) (err error) {
-	if timestamp < flvFile.lastVideoTimestamp {
-		timestamp = flvFile.lastVideoTimestamp
-	} else {
-		flvFile.lastVideoTimestamp = timestamp
-	}
 	return flvFile.WriteTag(data, VIDEO_TAG, timestamp)
 }
 
 // Write tag
 func (flvFile *File) WriteTag(data []byte, tagType byte, timestamp uint32) (err error) {
+	if timestamp < flvFile.lastTimestamp {
+		timestamp = flvFile.lastTimestamp
+	} else {
+		flvFile.lastTimestamp = timestamp
+	}
 	if !flvFile.firstTimestampSet {
 		flvFile.firstTimestampSet = true
 		flvFile.firstTimestamp = timestamp
 	}
-	duration := float64(timestamp-flvFile.firstTimestamp) / 1000.0
+	timestamp -= flvFile.firstTimestamp
+	duration := float64(timestamp) / 1000.0
 	if flvFile.duration < duration {
 		flvFile.duration = duration
 	}

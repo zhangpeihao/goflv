@@ -249,7 +249,7 @@ func (flvFile *File) IsFinished() bool {
 	return (err != nil) || (pos >= flvFile.size)
 }
 func (flvFile *File) LoopBack() {
-	flvFile.file.Seek(int64(len(HEADER_BYTES)), 0)
+	flvFile.file.Seek(HEADER_LEN, 0)
 }
 func (flvFile *File) FilePath() string {
 	return flvFile.name

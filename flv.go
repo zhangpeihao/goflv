@@ -223,7 +223,7 @@ func (flvFile *File) ReadTag() (header *TagHeader, data []byte, err error) {
 	if _, err = io.ReadFull(flvFile.file, tmpBuf); err != nil {
 		return
 	}
-	header.Timestamp = uint32(tmpBuf[3])<<32 + uint32(tmpBuf[0])<<16 + uint32(tmpBuf[1])<<8 + uint32(tmpBuf[2])
+	header.Timestamp = uint32(tmpBuf[0])<<24 + uint32(tmpBuf[1])<<16 + uint32(tmpBuf[2])<<8 + uint32(tmpBuf[3])
 
 	// Read stream ID
 	if _, err = io.ReadFull(flvFile.file, tmpBuf[1:]); err != nil {
